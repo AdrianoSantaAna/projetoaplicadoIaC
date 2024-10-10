@@ -1,1 +1,50 @@
+name: Terraform Workflow
+
+on:
+  push:
+    branches:
+      - Main
+      - Release
+      - Development
+
+  pull_request:
+  workflow_dispatch:
+
+env:
+  TF_WORKSPACE: ${{ (github.ref == 'refs/heads/Main' || github.base_ref == 'Release/*') && 'Production' || 'Development' }}
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.7 
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_Region }} 
+      
+      - name: Select Terraform Workspace
+        run: |
+          terraform workspace list || terraform workspace new ${{ env.TF_WORKSPACE }}
+          terraform workspace select ${{ env.TF_WORKSPACE }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        if: steps.plan.outcome == 'success'  
+        run: terraform apply -auto-approve
 
