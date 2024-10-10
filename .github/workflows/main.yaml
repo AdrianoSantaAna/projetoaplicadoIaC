@@ -33,10 +33,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_Region }} 
       
-      - name: Select Terraform Workspace
-        run: |
-          terraform workspace list || terraform workspace new ${{ env.TF_WORKSPACE }}
-          terraform workspace select ${{ env.TF_WORKSPACE }}
+      # - name: Select Terraform Workspace
+      #   run: |
+      #     terraform workspace list || terraform workspace new ${{ env.TF_WORKSPACE }}
+      #     terraform workspace select ${{ env.TF_WORKSPACE }}
 
       - name: Terraform Init
         run: terraform init
@@ -47,4 +47,8 @@ jobs:
       - name: Terraform Apply
         if: steps.plan.outcome == 'success'  
         run: terraform apply -auto-approve
+
+
+
+
 
