@@ -6,41 +6,51 @@ on:
       - Main
       - Release
       - Development
-
   pull_request:
   workflow_dispatch:
-
-env:
-  TF_WORKSPACE: ${{ (github.ref == 'refs/heads/Main' || github.base_ref == 'Release/*') && 'Production' || 'Development' }}
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}  # Use secrets for access key
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}  # Use secrets for secret key
+          aws-region: ${{ vars.AWS_Region }}  # Ensure AWS Region is correctly defined
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.9.7 
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ vars.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ vars.AWS_Region }} 
-      
+      - name: Set Terraform Workspace
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/Main" || "${{ github.ref }}" == refs/heads/Release* ]]; then
+            echo "Setting workspace to Production"
+            terraform workspace select Production || terraform workspace new Production
+          else
+            echo "Setting workspace to Development"
+            terraform workspace select Development || terraform workspace new Development
+          fi
+
       - name: Terraform Init
         run: terraform init
 
       - name: Terraform Plan
+        id: plan   # Assign an ID to refer to in later steps
         run: terraform plan
 
       - name: Terraform Apply
-        if: steps.plan.outcome == 'success'  
+        if: steps.plan.outcome == 'success'
         run: terraform apply -auto-approve
 
 
