@@ -11,11 +11,36 @@ terraform {
 provider "aws" {
   region  = "sa-east-1"
 }
+variable "aws_region" {
+  default = "sa-east-1"  # Change to your preferred region
+}
+
+variable "instance_type" {
+  default = "t2.micro"   # Free Tier eligible instance type
+}
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  
+  filter {
+    name   = "ProjetoAplicado"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"]  # Canonical's AWS Account ID (Ubuntu official)
+}
 resource "aws_instance" "app_server" {
-  ami           = "ami-0c5410a9e09852edd"
-  instance_type = "t2.micro"
+  ami             = data.aws_ami.ubuntu.id  # Dynamically selected Ubuntu AMI
+  instance_type   = var.instance_type
+  subnet_id       = aws_subnet.public.id
+  security_groups = [aws_security_group.instance_sg.name]
 
   tags = {
-    Name = "ProjetoAplicado_testeTF"
+    Name = "Ubuntu_Free_Tier"
   }
 }
