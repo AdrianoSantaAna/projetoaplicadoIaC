@@ -12,9 +12,9 @@ provider "aws" {
   region = "sa-east-1"  
 }
 
-# Criação de um bucket S3 simples
+# Criação de um bucket S3 
 resource "aws_s3_bucket" "meu_bucket" {
-  bucket = "mProjetoaplicadoXPEAnaExames-test"  
+  bucket = "projetoaplicadoxpeanaexamestest"  
   tags = {
     Name        = "Bucket AnaExames"
     Environment = "Production"
