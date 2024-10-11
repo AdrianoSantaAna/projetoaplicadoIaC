@@ -37,9 +37,6 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "app_server" {
   ami             = data.aws_ami.ubuntu.id  # Dynamically selected Ubuntu AMI
   instance_type   = var.instance_type
-  subnet_id       = aws_subnet.public.id
-  security_groups = [aws_security_group.instance_sg.name]
-
   tags = {
     Name = "Ubuntu_Free_Tier"
   }
