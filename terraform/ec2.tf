@@ -37,6 +37,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "app_server" {
   ami             = data.aws_ami.ubuntu.id  # Dynamically selected Ubuntu AMI
   instance_type   = var.instance_type
+  availability_zone = "sa-east-1a"
   tags = {
     Name = "Ubuntu_Free_Tier"
   }
